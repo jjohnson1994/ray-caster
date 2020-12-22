@@ -139,22 +139,17 @@ function init() {
 }
 
 function loop(ctx3D: CanvasRenderingContext2D, ctx2D: CanvasRenderingContext2D) {
-  const { cameraX, cameraZ, cameraPan } = camera;
 
   clearCanvases([ctx3D, ctx2D]);
   paintCameraOnMiniMap(ctx2D);
+  paintWallsOnMiniMap(ctx2D);
+  castRays(ctx2D, ctx3D);
 
-  let i: number;
-  let j: number;
-  for (i = 0; i < 30; i++) {
-    for (j = 0; j < 30; j++) {
-      const sprite = map[i][j];
+  updateCameraPosition();
+}
 
-      if (sprite === 1) {
-        ctx2D.fillRect(j * cellWidth, i * cellWidth, cellWidth, cellWidth);
-      }
-    }
-  }
+function castRays(ctx2D: CanvasRenderingContext2D, ctx3D: CanvasRenderingContext2D) {
+  const { cameraX, cameraZ, cameraPan } = camera;
 
   let d: number;
   let r: number;
@@ -173,8 +168,24 @@ function loop(ctx3D: CanvasRenderingContext2D, ctx2D: CanvasRenderingContext2D) 
       }
     }
   }
+}
 
-  updateCameraPosition();
+
+
+
+function paintWallsOnMiniMap(ctx: CanvasRenderingContext2D) {
+  let i: number;
+  let j: number;
+
+  for (i = 0; i < 30; i++) {
+    for (j = 0; j < 30; j++) {
+      const sprite = map[i][j];
+
+      if (sprite === 1) {
+        ctx.fillRect(j * cellWidth, i * cellWidth, cellWidth, cellWidth);
+      }
+    }
+  }
 }
 
 function checkForWall(_x: number, _z: number, rayCount: number, distance: number, ctx: CanvasRenderingContext2D) {
