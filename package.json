@@ -1,0 +1,22 @@
+{
+  "name": "ray-caster",
+  "version": "1.0.0",
+  "description": "simple ray casting",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git"
+  },
+  "keywords": [
+    "ray",
+    "tracing"
+  ],
+  "author": "James Johnson",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.1.3"
+  }
+}
