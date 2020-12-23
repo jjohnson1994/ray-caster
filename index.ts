@@ -40,7 +40,7 @@ const cellWidth = cameraWidth / mapColumns;
 const fps = 1000 / 60;
 const moveSpeed = 1;
 const panSpeed = 0.05;
-const rayCount = 45;
+const rayCount = 50;
 const rayWidth = cameraWidth / rayCount;
 
 function Camera() {
@@ -139,13 +139,42 @@ function init() {
 }
 
 function loop(ctx3D: CanvasRenderingContext2D, ctx2D: CanvasRenderingContext2D) {
-
   clearCanvases([ctx3D, ctx2D]);
   paintCameraOnMiniMap(ctx2D);
   paintWallsOnMiniMap(ctx2D);
   castRays(ctx2D, ctx3D);
-
   updateCameraPosition();
+}
+
+function clearCanvases(canvasContexes: CanvasRenderingContext2D[]) {
+  canvasContexes.forEach(ctx => {
+    ctx.clearRect(0, 0, 800, 500);
+  });
+}
+
+function paintCameraOnMiniMap(ctx2D: CanvasRenderingContext2D) {
+  const { cameraX, cameraZ, cameraPan } = camera;
+
+  ctx2D.translate(cameraX + cameraSpriteWidth / 2, cameraZ + cameraSpriteWidth / 2);
+  ctx2D.rotate(cameraPan);
+  ctx2D.fillRect(-(cameraSpriteWidth / 2), -(cameraSpriteWidth / 2), cameraSpriteWidth, cameraSpriteWidth);
+  ctx2D.rotate(-cameraPan);
+  ctx2D.translate(-(cameraX + cameraSpriteWidth / 2), -(cameraZ + cameraSpriteWidth / 2));
+}
+
+function paintWallsOnMiniMap(ctx: CanvasRenderingContext2D) {
+  let i: number;
+  let j: number;
+
+  for (i = 0; i < 30; i++) {
+    for (j = 0; j < 30; j++) {
+      const sprite = map[i][j];
+
+      if (sprite === 1) {
+        ctx.fillRect(j * cellWidth, i * cellWidth, cellWidth, cellWidth);
+      }
+    }
+  }
 }
 
 function castRays(ctx2D: CanvasRenderingContext2D, ctx3D: CanvasRenderingContext2D) {
@@ -164,25 +193,11 @@ function castRays(ctx2D: CanvasRenderingContext2D, ctx3D: CanvasRenderingContext
 
       if (x1 >= 0 && x1 <= 800 && z1 >= 0 && z1 <= 800) {
         ctx2D.fillRect(x1 + cameraSpriteWidth / 2, z1 + cameraSpriteWidth / 2, 1, 1);
-        checkForWall(x1 + cameraSpriteWidth / 2, z1 + cameraSpriteWidth / 2, r + rayCount * 0.5, d, ctx3D);
-      }
-    }
-  }
-}
+        const wall = checkForWall(x1 + cameraSpriteWidth / 2, z1 + cameraSpriteWidth / 2, r + rayCount * 0.5, d, ctx3D);
 
-
-
-
-function paintWallsOnMiniMap(ctx: CanvasRenderingContext2D) {
-  let i: number;
-  let j: number;
-
-  for (i = 0; i < 30; i++) {
-    for (j = 0; j < 30; j++) {
-      const sprite = map[i][j];
-
-      if (sprite === 1) {
-        ctx.fillRect(j * cellWidth, i * cellWidth, cellWidth, cellWidth);
+        if (wall) {
+          break;
+        }
       }
     }
   }
@@ -194,32 +209,49 @@ function checkForWall(_x: number, _z: number, rayCount: number, distance: number
 
   try {
     if (map[z][x] === 1) {
+      ctx.fillStyle = LightenDarkenColor("#DDDDDD", -(distance / 5));
       ctx.fillRect(
         rayCount * rayWidth,
         z + distance / 2,
         rayWidth,
         Math.max(0, cameraHeight - distance)
       );
+      return true;
     }
   } catch (error) {
-    console.log({ x, z });
+    console.error({ x, z });
   }
+
+  return false;
 }
 
-function clearCanvases(canvasContexes: CanvasRenderingContext2D[]) {
-  canvasContexes.forEach(ctx => {
-    ctx.clearRect(0, 0, 800, 500);
-  });
-}
+function LightenDarkenColor(col: string, amt: number) {
+  // https://css-tricks.com/snippets/javascript/lighten-darken-color/ 
+  let usePound = false;
 
-function paintCameraOnMiniMap(ctx2D: CanvasRenderingContext2D) {
-  const { cameraX, cameraZ, cameraPan } = camera;
+  if (col[0] == "#") {
+    col = col.slice(1);
+    usePound = true;
+  }
 
-  ctx2D.translate(cameraX + cameraSpriteWidth / 2, cameraZ + cameraSpriteWidth / 2);
-  ctx2D.rotate(cameraPan);
-  ctx2D.fillRect(-(cameraSpriteWidth / 2), -(cameraSpriteWidth / 2), cameraSpriteWidth, cameraSpriteWidth);
-  ctx2D.rotate(-cameraPan);
-  ctx2D.translate(-(cameraX + cameraSpriteWidth / 2), -(cameraZ + cameraSpriteWidth / 2));
+  const num = parseInt(col,16);
+
+  let r = (num >> 16) + amt;
+
+  if (r > 255) r = 255;
+  else if  (r < 0) r = 0;
+
+  let b = ((num >> 8) & 0x00FF) + amt;
+
+  if (b > 255) b = 255;
+  else if  (b < 0) b = 0;
+
+  let g = (num & 0x0000FF) + amt;
+
+  if (g > 255) g = 255;
+  else if (g < 0) g = 0;
+
+  return (usePound?"#":"") + (g | (b << 8) | (r << 16)).toString(16);
 }
 
 function updateCameraPosition() {
