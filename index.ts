@@ -36,7 +36,7 @@ const cameraHeight = 500;
 const cameraSpriteWidth = 20;
 const mapColumns= 30;
 const mapRows = 30;
-const cellWidth = cameraWidth / mapColumns;
+const cellWidth = cameraHeight / mapColumns;
 const fps = 1000 / 60;
 const moveSpeed = 1;
 const panSpeed = 0.05;
@@ -44,8 +44,8 @@ const rayCount = 50;
 const rayWidth = cameraWidth / rayCount;
 
 function Camera() {
-  let cameraX = 500;
-  let cameraZ = 250;
+  let cameraX = 300;
+  let cameraZ = 100;
   let cameraPan = -90 * Math.PI / 180;
 
   return {
